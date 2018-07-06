@@ -1,0 +1,10 @@
+[package]
+name = "ergothic_example"
+version = "0.1.0"
+authors = ["Cap. Hindsight <hindsight@yandex.ru>"]
+
+[dependencies]
+rand = "*"
+
+[dependencies.ergothic]
+path = "../ergothic"
