@@ -1,4 +1,5 @@
 extern crate ergothic;
+extern crate pretty_env_logger;
 extern crate rand;
 
 struct MySample {
@@ -27,8 +28,16 @@ impl ergothic::simulation::Sample for MySample {
 }
 
 fn main() {
+  pretty_env_logger::init();
+
   let mut params = ergothic::simulation::Parameters::new();
   params.flush_interval = std::time::Duration::from_secs(2);
+  params.exporter = Box::new(ergothic::export::MongoExporter::new(
+      "mongodb://localhost:27017",
+      "ergothic_data",
+      "test",
+      None
+  ));
   let mut sim = ergothic::simulation::Simulation::<MySample>::new(params);
 
   // Mean value of X. Should be 0.5.

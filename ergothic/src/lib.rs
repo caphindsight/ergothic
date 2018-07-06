@@ -1,5 +1,9 @@
+extern crate bson;
+extern crate mongodb;
 extern crate serde;
-extern crate serde_json;
+
+#[macro_use]
+extern crate log;
 
 #[macro_use]
 extern crate serde_derive;
