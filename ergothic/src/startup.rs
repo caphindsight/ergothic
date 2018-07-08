@@ -35,7 +35,9 @@ pub struct CmdArgs {
 
   /// Relative magnitude of the flush interval randomization. Allowed range is
   /// [0, 1). The real interval will be chosen at random within this fraction of
-  /// the --flush_interval_secs. Has effect only in production mode.
+  /// the --flush_interval_secs. The purpose is to avoid contention in the
+  /// storage service coming from all nodes reporting data points at the same
+  /// time. Has effect only in production mode.
   /// Example: --flush_interval_randomization 0.2 (randomize within 20%).
   #[structopt(long="flush_interval_randomization", default_value="0.5")]
   pub flush_interval_randomization: f64,
@@ -47,7 +49,7 @@ pub struct CmdArgs {
 }
 
 /// Parses the command line arguments and produces simulation parameters.
-pub fn construct_parameters(name: String, measures: Measures, args: CmdArgs)
+pub fn construct_parameters(name: String, measures: Measures, mut args: CmdArgs)
        -> Parameters {
   let mut rng = ::rand::thread_rng();
   use ::rand::distributions::Distribution;
@@ -86,6 +88,10 @@ pub fn construct_parameters(name: String, measures: Measures, args: CmdArgs)
   if args.flush_interval_randomization < 0.0 ||
      args.flush_interval_randomization >= 1.0 {
     panic!("Argument --path_integral_randomization should lie within [0, 1).");
+  }
+
+  if !args.production_mode {
+    args.flush_interval_randomization = 0.0;
   }
 
   let flush_interval_min = ::std::cmp::max(1, 

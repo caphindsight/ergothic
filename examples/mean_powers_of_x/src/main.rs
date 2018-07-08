@@ -27,10 +27,10 @@ struct MySample {
   unif: rand::distributions::Uniform<f64>,
 }
 
-impl ergothic::simulation::Sample for MySample {
+impl ergothic::Sample for MySample {
   // Prepare a randomized configuration. In our simple case, setting initial `x`
   // to zero is enough.
-  fn prepare_randomized() -> MySample {
+  fn prepare() -> MySample {
     MySample {
       x: 0.0,
       rng: rand::thread_rng(),
@@ -60,19 +60,18 @@ impl ergothic::simulation::Sample for MySample {
 }
 
 fn main() {
-  // Initialize the registry of measures (physical observables).
-  let mut measures = ergothic::measure::MeasureRegistry::new();
-
+  let mut simulation = ergothic::Simulation::new(
+      "mean values of powers of [0..1]");
+  
   let mut powers_of_x = Vec::with_capacity(10);
   for i in 0..10 {
     // Register a measure corresponding to X to the power of `i`.
-    powers_of_x.push(measures.register(format!("Mean X^{}", i)));
+    powers_of_x.push(simulation.add_measure(format!("Mean X^{}", i)));
   }
 
   // The entry-point function. It will parse the command line arguments and
   // set up the simulation parameters.
-  ergothic::run_simulation(
-    "mean values of powers of [0..1]", measures, |s: &MySample, ms| {
+  simulation.run(|s: &MySample, ms| {
     // This is the measurement lambda. Its job is to measure the registered
     // measures in a given statisticle sample `s` and record the values in `ms`.
     for i in 0..10 {

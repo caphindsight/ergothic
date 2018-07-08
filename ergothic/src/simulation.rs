@@ -6,7 +6,7 @@ use ::std::time::SystemTime;
 /// trait in order to be used in the *ergothic* simulation.
 pub trait Sample {
   /// Creates a new configuration sample with randomized degrees of freedom.
-  fn prepare_randomized() -> Self;
+  fn prepare() -> Self;
 
   /// Generally, randomized samples are highly atypical. In order to improve the
   /// quality of simulation results, a configuration sample has to be
@@ -60,7 +60,7 @@ pub fn run<S: Sample, F>(mut parameters: Parameters, measure_fn: F)
   where F: Fn(&S, &mut Measures) {
   info!("Running ergothic simulation \"{}\".", &parameters.name);
   // Prepare and thermalize a sample.
-  let mut sample = S::prepare_randomized();
+  let mut sample = S::prepare();
   sample.thermalize();
   let mut last_export_timestamp = SystemTime::now();
   let mut export_errors_in_row: usize = 0;

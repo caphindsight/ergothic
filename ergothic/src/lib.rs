@@ -30,21 +30,58 @@ extern crate structopt;
 /// Utilities related to accumulating mean values and statistical errors for
 /// physical observables measured on sample configurations drawn from the
 /// ergodic distribution.
-pub mod accumulate;
+mod accumulate;
 
 /// Exporters provide interfaces for sending the measured expectation values to
 /// different types of data sinks.
-pub mod export;
+mod export;
 
 /// Helper classes for measures and measure registries.
-pub mod measure;
+mod measure;
 
 /// The simulation orchestration engine is the core part of *ergothic*.
-pub mod simulation;
+mod simulation;
 
 /// Helpers for assembling binaries capable of running the same simulation in
 /// development and production modes.
-pub mod startup;
+mod startup;
 
-/// Entry-point function for all simulations.
-pub use startup::run_simulation;
+
+// Following are the elements of the public API.
+
+/// Sample trait defines an object acting as a statistical sample.
+pub use simulation::Sample;
+
+/// Positional index of a measure in the measure registry. Indices are wrapped
+/// in `MeasureIdx` type for type safety.
+pub use measure::MeasureIdx;
+
+/// Public interface to measure registry and the entry point function.
+pub struct Simulation {
+  name: String,
+  measure_registry: measure::MeasureRegistry,
+}
+
+impl Simulation {
+  /// Constructs a new simulation.
+  pub fn new<N: ToString>(name: N) -> Simulation {
+    Simulation {
+      name: name.to_string(),
+      measure_registry: measure::MeasureRegistry::new(),
+    }
+  }
+
+  /// Registers a measure in the underlying measure registry and returns its
+  /// positional index safely wrapped in the `MeasureIdx` type.
+  pub fn add_measure<N: ToString>(&mut self, name: N) -> MeasureIdx {
+    self.measure_registry.register(name.to_string())
+  }
+
+  /// Entry point function. All ergothic simulations should call this function.
+  /// Consumes `self` to indicate that the simulation runs in an infinite loop
+  /// and never returns.
+  pub fn run<S: simulation::Sample, F>(self, f: F)
+    where F: Fn(&S, &mut measure::Measures) {
+    startup::run_simulation(&self.name, self.measure_registry, f);
+  }
+}

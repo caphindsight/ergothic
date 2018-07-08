@@ -24,11 +24,11 @@ struct MySample {
 }
 ```
 
-Implement the trait `ergothic::simulation::Sample` for your sample. You will need to implement the following 3 methods:
+Implement the trait `ergothic::Sample` for your sample. You will need to implement the following 3 methods:
 
 ```rust
 trait Sample {
-  fn prepare_randomized() -> Self;
+  fn prepare() -> Self;
   fn thermalize(&mut self) { ... }
   fn mutate(&mut self);
 }
@@ -58,7 +58,7 @@ Usually it can be implemented by applying a fixed number (10-20) of mutations to
 However, ergothic lets you implement your own thermalization algorithm.
 
 #### In code
-Implement the `prepare_randomized` method of the `Sample` trait.
+Implement the `prepare` method of the `Sample` trait.
 
 Optionally, you can implement the `thermalize` method. The default implementation applies `mutate` 20 times.
 
@@ -67,12 +67,12 @@ Optionally, you can implement the `thermalize` method. The default implementatio
 The purpose of any ergothic simulation is to establish expectation values and statistical uncertainties for a given list of measures.
 
 #### In code
-Create a `MeasureRegistry` and register measures in it. All measures must be given unique human-readable names.
+Create a `Simulation` and add measures to it. All measures must be given unique human-readable names.
 
 ```rust
 fn main() {
-  let mut reg = ergothic::measure::MeasureRegistry::new();
-  let ground_state_energy = reg.register("Energy of the ground state".to_string());
+  let mut simulation = ergothic::Simulation::new("Lattice QCD");
+  let ground_state_energy = simulation.add_measure("Energy of the ground state");
   ...
 }
 ```
@@ -82,11 +82,10 @@ When your simulation runs, on each step you have a sample configuration.
 Measuring the values of physical observables of interest and accumulating those values in the statistical counters is done by the measurement function.
 
 #### In code
-Pass a lambda to the entry-point function `ergothic::run_simulation`.
+Pass a lambda to the entry-point function `ergothic::Simulation::run`.
 
 ```rust
-ergothic::run_simulation("My simulation",
-  /*takes ownership of measure registry*/ reg, |s: &MyState, ms| {
+simulation.run(|s: &MyState, ms| {
   // Calculate the values of relevant observables in state `s` and accumulate them in `ms`.
   // Accumulating values is easy: just call
   // ms.accumulate(ground_state_energy, value);
@@ -106,8 +105,8 @@ struct MySample {
   x: f64,  // Random variable within [0 .. 1].
 }
 
-impl ergothic::simulation::Sample for MySample {
-  fn prepare_randomized() -> MySample {
+impl ergothic::Sample for MySample {
+  fn prepare() -> MySample {
     MySample{x: rand::random()}
   }
   
@@ -117,11 +116,11 @@ impl ergothic::simulation::Sample for MySample {
 }
 
 fn main() {
-  let mut reg = ergothic::measure::MeasureRegistry::new();
-  let x = reg.register("Mean X".to_string());  // Mean value of the random variable x.
-  let x2 = reg.register("Mean X^2".to_string());  // Mean value of the square of x.
-  ergothic::run_simulation("Computing expectations of random variable and its square",
-    reg, |s: &MySample, ms| {
+  let mut simulation = ergothic::Simulation::new(
+      "Computing expectations of random variable and its square");
+  let x = simulation.add_measure("Mean X");  // Mean value of the random variable x.
+  let x2 = simulation.add_measure("Mean X^2");  // Mean value of the square of x.
+  simulation.run(|s: &MySample, ms| {
     ms.accumulate(x, s.x);  // Accumulate the value of x in the statistical counter for the corresponding measure.
     ms.accumulate(x2, s.x.powi(2));  // Accumulate the value of x^2 in the statistical counter for the corresponding measure.
   });
