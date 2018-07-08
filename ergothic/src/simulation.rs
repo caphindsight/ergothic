@@ -1,7 +1,6 @@
-use std::time::Duration;
-use std::time::SystemTime;
-use super::measure;
-use super::export;
+use ::measure::Measures;
+use ::std::time::Duration;
+use ::std::time::SystemTime;
 
 /// A configuration sample from the ergodic distribution must implement this
 /// trait in order to be used in the *ergothic* simulation.
@@ -29,79 +28,70 @@ pub trait Sample {
 
 /// Simulation parameters.
 pub struct Parameters {
-  /// Interval between subsequent flushes of the accumulated values.
-  pub flush_interval: Duration,
+  /// The name of the simulation.
+  pub name: String,
+
+  /// List of measures relevant to the simulation. Each `flush_interval`, the
+  /// measures from that list will be exported to the data sink.
+  pub measures: ::measure::Measures,
 
   /// The polymorphic data exporter. Simulation engine will send measured data
   /// to the exporter every `flush_interval` seconds.
-  pub exporter: Box<export::Exporter>,
+  pub exporter: Box<::export::Exporter>,
+  
+  /// Interval between subsequent flushes of the accumulated values.
+  pub flush_interval: Duration,
+
+  /// Panic after this many export errors in a row.
+  pub max_export_errors_in_row: Option<usize>,
 }
 
-impl Parameters {
-  /// Construct simulation parameters with defaults.
-  pub fn new() -> Parameters {
-    Parameters {
-      flush_interval: Duration::from_secs(60),
-      exporter: Box::new(export::DebugExporter::new()),
-    }
-  }
-}
+/// Runs the simulation in the infinite loop. Consumes `self`.
+/// The function `measure_fn` is called for each configuration sample. It is
+/// supplied with the (immutable) sample, and a mutable reference to the
+/// collection of measures. The function should calculate the values of the
+/// physical quantities for the configuration sample and supply those to the
+/// accumulators contained in the collection of measures.
+pub fn run<S: Sample, F>(mut parameters: Parameters, measure_fn: F)
+  where F: Fn(&S, &mut Measures) {
+  info!("Running ergodic simulation \"{}\".", &parameters.name);
+  // Prepare and thermalize a sample.
+  let mut sample = S::prepare_randomized();
+  sample.thermalize();
+  let mut last_export_timestamp = SystemTime::now();
+  let mut export_errors_in_row: usize = 0;
+  loop {
+    // Mutate the sample. This draws a new configuration from the ergodic
+    // distribution.
+    sample.mutate();
 
-/// The statistical simulation. *Ergothic* will do its best to handle all
-/// implementation details and reduce boilerplate.
-/// `Simulation<S>` is not a trait, and overriding the simulation algorithm is
-/// not possible. However, everything specific to the model is configurable by
-/// implementing the functions of the `Sample` trait.
-pub struct Simulation<S: Sample> {
-  sample: S,
-  measures: measure::Measures,
-  parameters: Parameters,
-}
+    // Measure and record the values of observables.
+    measure_fn(&sample, &mut parameters.measures);
 
-impl <S: Sample> Simulation<S> {
-  /// Constructs a new `Simulation<S>`. Prepares a randomized sample of type `S`
-  /// and an empty collection of measures, corresponding to physical observables.
-  pub fn new(parameters: Parameters) -> Simulation<S> {
-    Simulation {
-      sample: S::prepare_randomized(),
-      measures: measure::Measures::new(),
-      parameters,
-    }
-  }
-
-  /// Returns an immutable reference to the simulation parameters.
-  pub fn parameters(&self) -> &Parameters {
-    &self.parameters
-  }
-
-  /// Returns an immutable reference to the collection of measures.
-  pub fn measures(&self) -> &measure::Measures {
-    &self.measures
-  }
-
-  /// Returns a mutable reference to the collection of measures.
-  pub fn measures_mut(&mut self) -> &mut measure::Measures {
-    &mut self.measures
-  }
-
-  /// Runs the simulation in the infinite loop. Consumes `self`.
-  /// The function `measure_fn` is called for each configuration sample. It is
-  /// supplied with the (immutable) sample, and a mutable reference to the
-  /// collection of measures. The function should calculate the values of the
-  /// physical quantities for the configuration sample and supply those to the
-  /// accumulators contained in the collection of measures.
-  pub fn run<F>(mut self, measure_fn: F)
-    where F: Fn(&S, &mut measure::Measures) {
-    self.sample.thermalize();
-    let mut last_export_timestamp = SystemTime::now();
-    loop {
-      self.sample.mutate();
-      measure_fn(&self.sample, &mut self.measures);
-      if last_export_timestamp.elapsed().unwrap() >=
-         self.parameters.flush_interval {
-         last_export_timestamp = SystemTime::now();
-         self.parameters.exporter.export(&self.measures);
-         self.measures.reset_accs();
+    if last_export_timestamp.elapsed().unwrap() >=
+      parameters.flush_interval {
+      last_export_timestamp = SystemTime::now();
+      // Export a new data point containing the accumulated expectations.
+      match parameters.exporter.export(&parameters.measures) {
+        Ok(()) => {
+          export_errors_in_row = 0;
+          // Exported a data point. Reset the accumulated expectations and
+          // continue the simulation.
+          parameters.measures.reset();
+        },
+        Err(::export::ExportError(ref err)) => {
+          export_errors_in_row += 1;
+          // Export failed. Reporting an error and keeping the accumulated
+          // expectations in hope of exporting them the next time.
+          error!("Failed to export measured values: {:?}", err);
+        },
+      }
+      if let Some(ref max_export_errors_in_row) =
+             parameters.max_export_errors_in_row {
+        if export_errors_in_row >= *max_export_errors_in_row {
+          panic!("Reached a maximum of {} export errors in row.",
+                 *max_export_errors_in_row);
+        }
       }
     }
   }

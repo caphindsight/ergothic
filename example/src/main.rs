@@ -28,26 +28,17 @@ impl ergothic::simulation::Sample for MySample {
 }
 
 fn main() {
-  pretty_env_logger::init();
-
-  let mut params = ergothic::simulation::Parameters::new();
-  params.flush_interval = std::time::Duration::from_secs(2);
-  params.exporter = Box::new(ergothic::export::MongoExporter::new(
-      "mongodb://localhost:27017",
-      "ergothic_data",
-      "test",
-      None
-  ));
-  let mut sim = ergothic::simulation::Simulation::<MySample>::new(params);
+  let mut measures = ergothic::measure::MeasureRegistry::new();
 
   // Mean value of X. Should be 0.5.
-  let mean_x = sim.measures_mut().register("Mean X  ".to_string());
+  let mean_x = measures.register("Mean X".to_string());
 
   // Mean value of X^2. Should be 1/3.
-  let mean_x2 = sim.measures_mut().register("Mean X^2".to_string());
+  let mean_x2 = measures.register("Mean X^2".to_string());
 
-  sim.run(|s, ms| {
-    ms.acc_mut(mean_x).consume(s.x);
-    ms.acc_mut(mean_x2).consume(s.x.powi(2));
+  ergothic::run_simulation(
+    "mean values of powers of [0..1]", measures, |s: &MySample, ms| {
+    ms.accumulate(mean_x, s.x);
+    ms.accumulate(mean_x2, s.x.powi(2));
   });
 }
