@@ -155,3 +155,41 @@ Aggregate values:
 We see that the expectations of X and X^2 are what we would expect from taking the integrals analytically (1/2 and 1/3 respectively).
 Statistical uncertainties are of order 3% and 4% respectively after processing ~5 million samples.
 
+## Scaling up
+Now we want to fully take advantage of the huge computational resources which belong to our university / software company / cloud provider / etc.
+
+### Setting up MongoDB
+Ergothic needs a data sink where the data points will be exported to.
+Currently, the only supported type of data sinks is [MongoDB](https://www.mongodb.com/), though implementing other exporters should be easy and is among the next goals for ergothic.
+
+### Shipping the simulation
+Build the optimized version of same code with
+
+```
+cargo build --release
+```
+
+Now you need a way to distribute the binary to the cluster nodes and run them.
+For example, you can bundle the binary into a Docker container, and orchestrate the computation with [Kubernetes](https://kubernetes.io/).
+
+Run the containers with the following command line arguments:
+
+```
+./my_simulation --production --mongo mongodb://hostname1:port2[,hostname2:port2,...] --mongo_db ergothic_data --mongo_coll my_simulation
+```
+
+Where:
+* *hostnames* should resolve to the host running MongoDB nodes.
+* *ports* should correspond to the exposed MongoDB ports.
+* *--mongo_db* is the name of the database to send data points to.
+* *--mongo_coll* is the name of the collection to send data points to.
+
+In production mode, every node will produce a data point every ~5 min.
+Data points will get accumulated in the database.
+
+### Analyzing the results
+
+As the simulation runs, data points are accumulated in the database.
+This section describes how to query the database for aggregate values and uncertainties.
+
+**TODO:** after the `ergothic_cli` tool is implemented, explain how to use it to analyze and manipulate the results.
