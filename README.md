@@ -161,6 +161,13 @@ Statistical uncertainties are of order 3% and 4% respectively after processing ~
 ## Scaling up
 Now we want to fully take advantage of the huge computational resources which belong to our university / software company / cloud provider / etc.
 
+### Computational model
+Ergothic uses the "embarrassingly parallel" computational model.
+All nodes participating in the simulation are doing the same thing – producing data points and sending those to the storage service.
+This model has many advantages – it is super simple, scales perfectly, doesn't have any bottlenecks because the nodes don't communicate with each other.
+
+You can analyze the intermediate (or final) results of your simulation by querying the database directly using the `ergothic_cli` command line tool.
+
 ### Setting up MongoDB
 Ergothic needs a data sink where the data points will be exported to.
 Currently, the only supported type of data sinks is [MongoDB](https://www.mongodb.com/), though implementing other exporters should be easy and is among the next goals for ergothic.
