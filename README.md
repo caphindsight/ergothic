@@ -5,7 +5,7 @@ However, its primary purpose is to ease the toil for simulating Quantum Field Th
 
 Ergothic will perform routine tasks unrelated to the subject of your research for you, allowing you to focus on the code that matters.
 Simulations written with ergothic can run both in the single-threaded local environment, which is super easy to debug, and on clusters with tens of thousands of nodes.
-No code changes are required to scale your simulation up to any number, that technical part has already been taking care for you!
+No code changes are required to scale your simulation up to any number, that technical part has already been taken care of for you!
 
 ## Basic tutorial
 Ergothic provides a very simple API that you can use to set up your simulation.
