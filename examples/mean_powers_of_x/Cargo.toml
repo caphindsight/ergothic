@@ -1,5 +1,5 @@
 [package]
-name = "ergothic_example"
+name = "mean_powers_of_x"
 version = "0.1.0"
 authors = ["Cap. Hindsight <hindsight@yandex.ru>"]
 
@@ -8,4 +8,4 @@ pretty_env_logger = "0.2.3"
 rand = "0.5.3"
 
 [dependencies.ergothic]
-path = "../ergothic"
+path = "../../ergothic"

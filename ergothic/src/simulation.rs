@@ -54,7 +54,7 @@ pub struct Parameters {
 /// accumulators contained in the collection of measures.
 pub fn run<S: Sample, F>(mut parameters: Parameters, measure_fn: F)
   where F: Fn(&S, &mut Measures) {
-  info!("Running ergodic simulation \"{}\".", &parameters.name);
+  info!("Running ergothic simulation \"{}\".", &parameters.name);
   // Prepare and thermalize a sample.
   let mut sample = S::prepare_randomized();
   sample.thermalize();

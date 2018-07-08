@@ -117,6 +117,8 @@ pub fn run_simulation<S, F>(name: &str, reg: MeasureRegistry, measure_fn: F)
   let cmd_args = CmdArgs::from_args();
   if cmd_args.production_mode {
     ::simple_logger::init().expect("Failed to initialize logger");
+  } else {
+    println!("Running ergothic simulation \"{}\".", name);
   }
   let parameters = construct_parameters(name.to_string(), reg.freeze(),
                                         cmd_args);

@@ -1,5 +1,6 @@
 use ::measure::Measures;
 use ::measure::MeasureRegistry;
+use ::std::time::SystemTime;
 
 /// Errors returned by the exporter. Contain a string describing the cause of
 /// the error.
@@ -18,6 +19,7 @@ pub trait Exporter {
 /// outputs the accumulated values to stdout.
 pub struct DebugExporter {
   aggregated: MeasureRegistry,
+  creation_timestamp: SystemTime,
 }
 
 impl DebugExporter {
@@ -25,6 +27,7 @@ impl DebugExporter {
   pub fn new() -> DebugExporter {
     DebugExporter {
       aggregated: MeasureRegistry::new(),
+      creation_timestamp: SystemTime::now(),
     }
   }
   
@@ -41,13 +44,11 @@ impl DebugExporter {
       Cell::new_align("MEASURE", Alignment::CENTER),
       Cell::new_align("EXPECTATION", Alignment::CENTER),
       Cell::new_align("UNCERTAINTY", Alignment::CENTER),
-      Cell::new_align("NUM OF SAMPLES", Alignment::CENTER),
       Cell::new_align("RELATIVE UNCERTAINTY", Alignment::CENTER),
     ]));
     for measure in measures.slice() {
       let expectation = format!("{}", measure.acc.value());
       let uncertainty = format!("{}", measure.acc.uncertainty());
-      let num_of_samples = format!("{}", measure.acc.num_of_samples().round());
       let relative_uncertainty =
         format!("{}", measure.acc.uncertainty() * 100.0
                     / measure.acc.value().abs());
@@ -55,7 +56,6 @@ impl DebugExporter {
         Cell::new_align(&measure.name, Alignment::RIGHT),
         Cell::new(&expectation),
         Cell::new(&uncertainty),
-        Cell::new(&num_of_samples),
         Cell::new(&relative_uncertainty),
       ]));
     }
@@ -66,6 +66,7 @@ impl DebugExporter {
 impl Exporter for DebugExporter {
   fn export(&mut self, measures: &Measures)
      -> Result<(), ExportError> {
+    let mut samples_processed: usize = 0;
     // Merge the reported values to the global accumulated values.
     for measure in measures.slice() {
       let measure_idx = match self.aggregated.find(&measure.name) {
@@ -73,10 +74,15 @@ impl Exporter for DebugExporter {
         None => self.aggregated.register(measure.name.clone()),
       };
       self.aggregated.accumulator(measure_idx).merge(measure.acc.clone());
+      samples_processed =
+        self.aggregated.accumulator(measure_idx).num_of_samples() as usize;
     }
 
     // Output the global accumulated values to stdout.
     println!();
+    println!("Simulation uptime: {} secs",
+             self.creation_timestamp.elapsed().unwrap().as_secs());
+    println!("Samples processed: {}", samples_processed);
     println!("Aggregate values:");
     DebugExporter::pretty_table(self.aggregated.measures()).printstd();
     Ok(())
