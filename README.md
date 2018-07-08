@@ -196,3 +196,10 @@ As the simulation runs, data points are accumulated in the database.
 This section describes how to query the database for aggregate values and uncertainties.
 
 **TODO:** after the `ergothic_cli` tool is implemented, explain how to use it to analyze and manipulate the results.
+
+## Remains to be done
+Checklist of the most important features that are currently missing from ergothic:
+
+- [ ] Data analyzer tool `ergothic_cli` for querying and aggregating the data points.
+- [ ] Multithreaded jobs – ability to scale the simulation into NxM threads where N is the number of nodes and M is the number of threads per node. Threads shouldn't communicate with each other, the computational model remains embarassingly parallel.
+- [ ] Exporting to local files and other databases – exporters to other formats.
