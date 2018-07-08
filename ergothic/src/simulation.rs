@@ -16,7 +16,11 @@ pub trait Sample {
   /// Simulation engines allowed free to call this function from time to time to
   /// get rid of possible biases and improve ergodicity, as long as it is not on
   /// the critical path.
-  fn thermalize(&mut self);
+  fn thermalize(&mut self) {
+    for _ in 0..20 {
+      self.mutate();
+    }
+  }
 
   /// Make a randomized step in the configuration step. This function drives
   /// statistical simulations in *ergothic*. When implementing it, make sure
