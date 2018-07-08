@@ -87,7 +87,10 @@ Pass a lambda to the entry-point function `ergothic::run_simulation`.
 ```rust
 ergothic::run_simulation("My simulation",
   /*takes ownership of measure registry*/ reg, |s: &MyState, ms| {
-  ... // Calculate the values of relevant observables in state `s` and accumulate them in `ms`.
+  // Calculate the values of relevant observables in state `s` and accumulate them in `ms`.
+  // Accumulating values is easy: just call
+  // ms.accumulate(ground_state_energy, value);
+  // where `value` is computed using the sample configuration `s`.
 });
 ```
 
