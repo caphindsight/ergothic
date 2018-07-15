@@ -1,0 +1,10 @@
+[package]
+name = "qft"
+version = "0.1.0"
+authors = ["Cap. Hindsight <hindsight@yandex.ru>"]
+
+[dependencies]
+rand = "0.5.3"
+
+[dependencies.ergothic]
+path = "../../ergothic"

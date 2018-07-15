@@ -50,7 +50,7 @@ impl DebugExporter {
       let expectation = format!("{}", measure.acc.value());
       let uncertainty = format!("{}", measure.acc.uncertainty());
       let relative_uncertainty =
-        format!("{}", measure.acc.uncertainty() * 100.0
+        format!("{}", measure.acc.uncertainty()
                     / measure.acc.value().abs());
       table.add_row(Row::new(vec![
         Cell::new_align(&measure.name, Alignment::RIGHT),

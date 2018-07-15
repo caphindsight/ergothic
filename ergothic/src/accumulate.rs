@@ -54,6 +54,9 @@ impl Acc {
   /// sample configurations is biased in any way, the `Arc` will not reproduce
   /// the correct expectation value.
   pub fn consume(&mut self, value: f64) {
+    if value.is_nan() {
+      return;
+    }
     self.count += 1.0;
     self.mean += (value - self.mean) / self.count;
     self.mean2 += (value.powi(2) - self.mean2) / self.count;
