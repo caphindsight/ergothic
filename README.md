@@ -149,13 +149,13 @@ Aggregate values:
 +----------+--------------------+------------------------+----------------------+
 | MEASURE  |    EXPECTATION     |      UNCERTAINTY       | RELATIVE UNCERTAINTY |
 +----------+--------------------+------------------------+----------------------+
-|   Mean X | 0.4999631317520213 | 0.00013121218432651647 | 0.026244372033335638 |
-| Mean X^2 | 0.3332809661876769 | 0.0001355082806320386  | 0.04065887175679013  |
+|   Mean X | 0.4999631317520213 | 0.00013121218432651647 | 0.000262443720333356 |
+| Mean X^2 | 0.3332809661876769 | 0.0001355082806320386  | 0.0004065887175679   |
 +----------+--------------------+------------------------+----------------------+
 ```
 
 We see that the expectations of X and X^2 are what we would expect from taking the integrals analytically (1/2 and 1/3 respectively).
-Statistical uncertainties are of order 3% and 4% respectively after processing ~5 million samples.
+Statistical uncertainties are of order 0.03% and 0.04% respectively after processing ~5 million samples.
 
 ## Scaling up
 Now we want to fully take advantage of the huge computational resources which belong to our university / software company / cloud provider / etc.
