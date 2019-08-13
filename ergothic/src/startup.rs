@@ -53,7 +53,7 @@ pub fn construct_parameters(name: String, measures: Measures, mut args: CmdArgs)
        -> Parameters {
   let mut rng = ::rand::thread_rng();
   use ::rand::distributions::Distribution;
-  let exporter: Box<Exporter>;
+  let exporter: Box<dyn Exporter>;
   if args.production_mode {
     if cfg!(debug_assertions) {
       panic!("Please build an optimized binary.");

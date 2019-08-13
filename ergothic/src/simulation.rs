@@ -41,7 +41,7 @@ pub struct Parameters {
 
   /// The polymorphic data exporter. Simulation engine will send measured data
   /// to the exporter every `flush_interval` seconds.
-  pub exporter: Box<::export::Exporter>,
+  pub exporter: Box<dyn (::export::Exporter)>,
   
   /// Interval between subsequent flushes of the accumulated values.
   pub flush_interval: Duration,

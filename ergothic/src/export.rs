@@ -132,13 +132,13 @@ impl MongoExporter {
 
 impl Exporter for MongoExporter {
   fn export(&mut self, measures: &Measures) -> Result<(), ExportError> {
-    let serialized_data = ::bson::to_bson(measures)
+    let serialized_data = ::mongodb::to_bson(measures)
         .expect("Serialization error");
-    if let ::bson::Bson::Document(doc) = serialized_data {
+    if let ::mongodb::Bson::Document(doc) = serialized_data {
       match self.collection.insert_one(doc, self.write_concern.clone()) {
         Ok(res) => {
           if res.acknowledged {
-            if let Some(::bson::Bson::ObjectId(id)) = res.inserted_id {
+            if let Some(::mongodb::Bson::ObjectId(id)) = res.inserted_id {
               info!("Measurements flushed to {}, obj_id={}",
                     self.formatted_addr, id.to_hex());
               Ok(())

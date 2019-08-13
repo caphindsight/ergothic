@@ -1,6 +1,6 @@
 [package]
 name = "ergothic"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Cap. Hindsight <hindsight@yandex.ru>"]
 description = "Rust library for setting up and running distributed Monte-Carlo statistical simulations. Designed primarily for lattice QCD."
 homepage = "https://github.com/caphindsight/ergothic"
